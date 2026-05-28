@@ -9,7 +9,7 @@ class Node:
 import heapq
     
 class Tokenizer:
-    def __init__(self, vocab_size: int = 275):
+    def __init__(self, vocab_size: int = 1000):
         self.vocab_size = vocab_size
         self.encoder_rules = {}
         self.decoder_rules = {i: bytes([i]) for i in range(256)}
@@ -48,6 +48,8 @@ class Tokenizer:
         while curr!=None and curr.next!=None:
             freq[(curr.value,curr.next.value)] += 1
             curr = curr.next
+            
+        occur = set()
         
         while len(self.merge_rules_list) < self.vocab_size - 256:
             maxx = 0
@@ -59,6 +61,9 @@ class Tokenizer:
                     
             id = 255 + len(self.merge_rules_list) + 1
             self.merge_rules_list.append(target)
+            if id not in occur:
+                occur.add(target)
+                self.encoder_rules[target] = id
             
             curr = head
             while curr!=None and curr.next!=None:
@@ -73,7 +78,7 @@ class Tokenizer:
                         freq[(new_node.prev.value,new_node.value)] += 1
                     if curr.next.next != None:
                         curr.next.next.prev = new_node
-                        freq[(curr.next.value,curr.next.next.value)] -=1
+                        freq[(curr.next.value,curr.next.next.value)] -= 1
                         if freq[(curr.next.value,curr.next.next.value)] == 0: del freq[(curr.next.value,curr.next.next.value)]
                         freq[(new_node.value,new_node.next.value)] += 1
                     freq[(curr.value,curr.next.value)] -=1
